@@ -23,10 +23,21 @@ services:
   php:
     build: docker/images/php
     working_dir: /app
+    user: ${UID:-1000}:${GID:-1000}
     volumes:
       - ${PWD}:/app
-      - ${HOME}/.composer:/root/.composer
+      - ${HOME}/.composer:/.composer
     environment:
       - COMPOSER_ALLOW_SUPERUSER=1
     links:
       - postgres
+  node:
+    image: node:alpine
+    environment:
+      - HOME=${PWD}
+      - YARN_CACHE_FOLDER=/yarn
+    working_dir: /app
+    user: ${UID:-1000}:${GID:-1000}
+    volumes:
+      - ${PWD}:/app
+      - ${HOME}/.yarn:/yarn
