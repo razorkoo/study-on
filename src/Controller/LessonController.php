@@ -32,12 +32,12 @@ class LessonController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        $course_id = $request->query->get('course_id');
-        $myCourse =  $this->getDoctrine()->getRepository(Course::class)->find($course_id);
+        $courseId = $request->query->get('course_id');
+        $newCourse =  $this->getDoctrine()->getRepository(Course::class)->find($courseId);
 
-        if($myCourse){
+        if($newCourse){
             $lesson = new Lesson();
-            $lesson->setLessonCourse($myCourse);
+            $lesson->setLessonCourse($newCourse);
             $form = $this->createForm(LessonType::class, $lesson);
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
@@ -45,7 +45,7 @@ class LessonController extends AbstractController
                 $entityManager->persist($lesson);
                 $entityManager->flush();
                 $response = $this->forward('App\Controller\CourseController::show', [
-                    'id'  => $course_id
+                    'id'  => $courseId
                 ]);
                 return $response;
             }
@@ -97,7 +97,7 @@ class LessonController extends AbstractController
      */
     public function delete(Request $request, Lesson $lesson): Response
     {
-        $idCourse = $lesson->getLessonCourse()->getId();
+        $idCourse = $lesson->getLessonCourse();
         if ($this->isCsrfTokenValid('delete'.$lesson->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($lesson);

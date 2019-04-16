@@ -20,9 +20,13 @@
 
 
         {% else %}
-            <tr>
-                <td colspan="4">Курсов не найдено</td>
-            </tr>
+            <div class="col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Курсов не найдено</h5>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
         </div>
         <br />
