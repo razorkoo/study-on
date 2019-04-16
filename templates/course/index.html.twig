@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Course index{% endblock %}
+
+{% block body %}
+    <h1>Список курсов</h1>
+
+        <div class="row">
+        {% for course in courses %}
+
+                <div class="col-sm-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ course.titleCourse }}</h5>
+                            <p class="card-text">{{ course.descriptionCourse }}</p>
+                            <a href="{{ path('course_show', {'id': course.id}) }}" class="btn btn-primary">Перейти к курсу</a>
+                        </div>
+                    </div>
+                </div>
+
+
+        {% else %}
+            <tr>
+                <td colspan="4">Курсов не найдено</td>
+            </tr>
+        {% endfor %}
+        </div>
+        <br />
+
+    <a href="{{ path('course_new') }}" class="btn btn-success">Добавить новый курс</a>
+{% endblock %}
