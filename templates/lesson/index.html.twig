@@ -19,8 +19,8 @@
         {% for lesson in lessons %}
             <tr>
                 <td>{{ lesson.id }}</td>
-                <td>{{ lesson.titleLesson }}</td>
-                <td>{{ lesson.contentLesson }}</td>
+                <td>{{ lesson.title }}</td>
+                <td>{{ lesson.content }}</td>
                 <td>{{ lesson.serialNumber }}</td>
                 <td>
                     <a href="{{ path('lesson_show', {'id': lesson.id}) }}">show</a>

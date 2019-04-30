@@ -21,12 +21,12 @@ class Course
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $titleCourse;
+    private $title;
 
     /**
      * @ORM\Column(type="string", length=1000)
      */
-    private $descriptionCourse;
+    private $description;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Lesson", mappedBy="lessonCourse", cascade={"persist", "remove"})
@@ -45,26 +45,26 @@ class Course
         return $this->id;
     }
 
-    public function getTitleCourse(): ?string
+    public function getTitle(): ?string
     {
-        return $this->titleCourse;
+        return $this->title;
     }
 
-    public function setTitleCourse(string $titleCourse): self
+    public function setTitle(string $title): self
     {
-        $this->titleCourse = $titleCourse;
+        $this->title = $title;
 
         return $this;
     }
 
-    public function getDescriptionCourse(): ?string
+    public function getDescription(): ?string
     {
-        return $this->descriptionCourse;
+        return $this->description;
     }
 
-    public function setDescriptionCourse(string $descriptionCourse): self
+    public function setDescription(string $description): self
     {
-        $this->descriptionCourse = $descriptionCourse;
+        $this->description = $description;
 
         return $this;
     }

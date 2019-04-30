@@ -3,14 +3,14 @@
 {% block title %}Course{% endblock %}
 
 {% block body %}
-    <h1>{{ course.titleCourse }}</h1>
-    {{ course.descriptionCourse }}
+    <h1>{{ course.title }}</h1>
+    {{ course.description }}
     <br>
     <h1>Уроки</h1>
     <ol>
         {% for lesson in lessons %}
         <li>
-            <a href="/lessons/{{ lesson.id }}">{{ lesson.titleLesson }}</a>
+            <a href="/lessons/{{ lesson.id }}" class="btn-link">{{ lesson.title }}</a>
         </li>
         {% endfor %}
     </ol>

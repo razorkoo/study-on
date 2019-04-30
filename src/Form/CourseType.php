@@ -14,8 +14,8 @@ class CourseType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('titleCourse', \Symfony\Component\Form\Extension\Core\Type\TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
-            ->add('descriptionCourse', TextareaType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
+            ->add('title', \Symfony\Component\Form\Extension\Core\Type\TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
+            ->add('description', TextareaType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
         ;
     }
 

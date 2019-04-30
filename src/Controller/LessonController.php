@@ -35,7 +35,7 @@ class LessonController extends AbstractController
         $courseId = $request->query->get('course_id');
         $newCourse =  $this->getDoctrine()->getRepository(Course::class)->find($courseId);
 
-        if($newCourse){
+        if ($newCourse) {
             $lesson = new Lesson();
             $lesson->setLessonCourse($newCourse);
             $form = $this->createForm(LessonType::class, $lesson);
@@ -106,6 +106,5 @@ class LessonController extends AbstractController
         $response = $this->forward('App\Controller\CourseController::show', [
             'id'  => $idCourse]);
         return $response;
-
     }
 }

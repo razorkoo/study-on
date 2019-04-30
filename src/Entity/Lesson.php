@@ -26,12 +26,12 @@ class Lesson
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $titleLesson;
+    private $title;
 
     /**
      * @ORM\Column(type="text")
      */
-    private $contentLesson;
+    private $content;
 
     /**
      * @ORM\Column(type="integer")
@@ -57,26 +57,26 @@ class Lesson
         return $this;
     }
 
-    public function getTitleLesson(): ?string
+    public function getTitle(): ?string
     {
-        return $this->titleLesson;
+        return $this->title;
     }
 
-    public function setTitleLesson(string $titleLesson): self
+    public function setTitle(string $title): self
     {
-        $this->titleLesson = $titleLesson;
+        $this->title = $title;
 
         return $this;
     }
 
-    public function getContentLesson(): ?string
+    public function getContent(): ?string
     {
-        return $this->contentLesson;
+        return $this->content;
     }
 
-    public function setContentLesson(string $contentLesson): self
+    public function setContent(string $content): self
     {
-        $this->contentLesson = $contentLesson;
+        $this->content = $content;
 
         return $this;
     }
