@@ -17,6 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class LessonController extends AbstractController
 {
+    /*
     /**
      * @Route("/", name="lesson_index", methods={"GET"})
      */

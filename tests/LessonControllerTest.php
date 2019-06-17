@@ -15,15 +15,7 @@ class LessonControllerTest extends AbstractTest
     {
         $client = static::createClient();
         $crawler = $client->request('GET', '/lessons/');
-        $this->assertSame(200, $client->getResponse()->getStatusCode());
-    }
-    public function testNewLessonPage()
-    {
-        $client = static::createClient();
-        $crawler = $client->request('GET', '/courses/');
-        $client->clickLink('Перейти к курсу');
-        $client->clickLink('Добавить урок');
-        $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $this->assertSame(404, $client->getResponse()->getStatusCode());
     }
     public function testShowLesson()
     {
@@ -38,7 +30,8 @@ class LessonControllerTest extends AbstractTest
     {
         $client = static::createClient();
         $client->request('GET', '/courses/');
-        $client->clickLink('Перейти к курсу');
+        $crawlerCourse = $client->clickLink('Перейти к курсу');
+        $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
         $crawler = $client->clickLink('Добавить урок');
         $newLessonForm = $crawler->selectButton('Сохранить')->form();
         $newLessonForm["lesson[title]"] = "Это тестовый урок";
@@ -47,7 +40,7 @@ class LessonControllerTest extends AbstractTest
         $client->submit($newLessonForm);
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
-        $this->assertEquals(4, $crawler->filter('.btn-link')->count());
+        $this->assertGreaterThan($countOfLessonsBefore, $crawler->filter('.btn-link')->count());
     }
     public function testPage404()
     {
@@ -63,36 +56,37 @@ class LessonControllerTest extends AbstractTest
         $crawler = $client->request('GET', "/lessons/$courseId/edit");
         $this->assertSame(404, $client->getResponse()->getStatusCode());
     }
-    /*
-     * Не работает
+
     public function testEditLesson()
     {
-        $this->testAddNewLesson();
         $client = static::createClient();
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
-        $link = $crawler->filter('.btn-link')->first();
-        $crawler = $client->click($link->link());
-        $client->clickLink('Редактировать');
-        $newLessonForm = $crawler->selectButton('Сохранить')->form();
-        $newLessonForm["lesson[title]"] = "Это тестовый урок2";
-        $newLessonForm["lesson[content]"] = "Это описание тестового урока2";
-        $newLessonForm["lesson[serialNumber]"] = "3";
-        $client->submit($newLessonForm);
-        $crawler = $client->request('GET', '/courses/');
-        $this->assertSame(200, $client->getResponse()->getStatusCode());
-    }*/
+        $link = $crawler->filter('.btn-link')->eq(1);
+        $client->clickLink($link->text());
+        $crawler = $client->clickLink('Редактировать');
+        $form = $crawler->selectButton('Сохранить')->form();
+        $form["lesson[title]"] = "Новый урок измененый";
+        $form["lesson[content]"] = "Новое описание урока";
+        $form["lesson[serialNumber]"] = 7;
+        $client->submit($form);
+        $client->request('GET', '/courses/');
+        $crawler = $client->clickLink('Перейти к курсу');
+        $this->assertTrue($crawler->filter('html:contains("Новый урок измененый")')->count() > 0);
+    }
     public function deleteLesson()
     {
         $client = static::createClient();
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
         $links = $crawler->filter('lesson')->links();
+        $countOfLessonsBefore = count($links);
         $crawler = $client->click($links[0]);
         $deleteLessonForm = $crawler->selectButton('Удалить')->form();
         $client->submit($deleteLessonForm);
         $crawler = $client->request('GET', '/courses/');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $this->assertCount(($countOfLessonsBefore-1), $crawler->filter('.btn-link')->count());
     }
 
 }

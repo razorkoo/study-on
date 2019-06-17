@@ -64,7 +64,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function testPage404()
     {
-        $courseId = 404;
+        $courseId = 65128;
         $client = static::createClient();
         $crawler = $client->request('GET', "/courses/$courseId");
         $this->assertSame(404, $client->getResponse()->getStatusCode());
@@ -100,6 +100,7 @@ class CourseControllerTest extends AbstractTest
         $client->submit($courseForm);
         $crawler = $client->request('GET', '/courses/');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $this->assertTrue($crawler->filter('html:contains("это изменение описания урока")')->count() > 0);
     }
     public function deleteCourse()
     {
@@ -116,6 +117,7 @@ class CourseControllerTest extends AbstractTest
         $client->submit($deleteCourseForm);
         $crawler = $client->followRedirect();
         $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $this->assertTrue($crawler->filter('html:contains("Это тестовый урок2")')->count() === 0);
     }
     public function newCourseWithoutTitle()
     {
