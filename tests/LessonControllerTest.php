@@ -42,6 +42,21 @@ class LessonControllerTest extends AbstractTest
         $crawler = $client->clickLink('Перейти к курсу');
         $this->assertGreaterThan($countOfLessonsBefore, $crawler->filter('.btn-link')->count());
     }
+    public function testInvalidLesson()
+    {
+        $client = static::createClient();
+        $client->request('GET', '/courses/');
+        $crawlerCourse = $client->clickLink('Перейти к курсу');
+        $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
+        $crawler = $client->clickLink('Добавить урок');
+        $newLessonForm = $crawler->selectButton('Сохранить')->form();
+        $newLessonForm["lesson[title]"] = "тестовое название";
+        $newLessonForm["lesson[content]"] = "Это описание тестового урока";
+        $newLessonForm["lesson[serialNumber]"] = "";
+        $client->submit($newLessonForm);
+        $this->assertContains("This value should not be blank.", $client->getResponse()->getContent());
+
+    }
     public function testPage404()
     {
         $courseId = 404;
