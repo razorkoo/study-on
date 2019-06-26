@@ -41,3 +41,7 @@ services:
     volumes:
       - ${PWD}:/app
       - ${HOME}/.yarn:/yarn
+networks:
+  default:
+    external:
+      name: study-onbillinnew_default
