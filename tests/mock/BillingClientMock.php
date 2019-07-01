@@ -30,7 +30,8 @@ class BillingClientMock extends BillingClient
         $adminUserPassword = "aaaaaa";
         if ($username == $defaultUserName && $password == $defaultUserPassword) {
             return ['token' => $this->userToken, 'roles' => ["ROLE_USER"]];
-        } elseif ($username == $adminUserName && $password == $adminUserPassword) {
+        }
+        if ($username == $adminUserName && $password == $adminUserPassword) {
             return ['token' => $this->adminToken, 'roles' => ["ROLE_USER", "ROLE_SUPER_ADMIN"]];
         } else {
             return ['code' => 401, 'message' => 'Bad credentials'];
@@ -43,10 +44,12 @@ class BillingClientMock extends BillingClient
 
         if ($email == $checkEmail) {
             return ['code' => 400, 'errors' => "The Same user is already exist"];
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return ['code' => 400, 'errors' => ['Wrong email format']];
-        } else {
-            return ['userToken' => $this->userToken, 'roles' => ["ROLE_USER"]];
         }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['code' => 400, 'errors' => ['Wrong email format']];
+        }
+
+        return ['userToken' => $this->userToken, 'roles' => ["ROLE_USER"]];
+
     }
 }

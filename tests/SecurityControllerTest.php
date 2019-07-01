@@ -46,7 +46,7 @@ class SecurityControllerTest extends AbstractTest
         $form["password"] = "aaaaaaaa";
         $client->submit($form);
         $client->followRedirect();
-        $this->assertContains("Bad credentials",$client->getResponse()->getContent());
+        $this->assertContains("Bad credentials", $client->getResponse()->getContent());
     }
     public function testUserProfileAndLogout()
     {
@@ -73,7 +73,7 @@ class SecurityControllerTest extends AbstractTest
         $form['registration_form[confirmation]'] = "aaaaaa";
         $client->submit($form);
         $client->followRedirect();
-        $this->assertContains("Выйти",$client->getResponse()->getContent());
+        $this->assertContains("Выйти", $client->getResponse()->getContent());
     }
     public function testRegisterUserExists()
     {
@@ -88,7 +88,7 @@ class SecurityControllerTest extends AbstractTest
         $form['registration_form[password]'] = "aaaaaa";
         $form['registration_form[confirmation]'] = "aaaaaa";
         $client->submit($form);
-        $this->assertContains("The Same user is already exist",$client->getResponse()->getContent());
+        $this->assertContains("The Same user is already exist", $client->getResponse()->getContent());
     }
     public function testRegisterWrongEmail()
     {
@@ -103,7 +103,7 @@ class SecurityControllerTest extends AbstractTest
         $form['registration_form[password]'] = "aaaaaa";
         $form['registration_form[confirmation]'] = "aaaaaa";
         $client->submit($form);
-        $this->assertContains("Wrong email format",$client->getResponse()->getContent());
+        $this->assertContains("Wrong email format", $client->getResponse()->getContent());
     }
 
 }
