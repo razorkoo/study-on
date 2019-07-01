@@ -4,13 +4,28 @@ namespace App\Tests;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use App\DataFixtures\CourseFixtures;
+use App\Tests\mock\BillingClientMock;
+
 class LessonControllerTest extends AbstractTest
 {
     public function getFixtures(): array
     {
         return [CourseFixtures::class];
     }
-
+    public function authClient($email, $password)
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
+        $client->request('GET', '/courses/');
+        $crawler = $client->clickLink("Вход");
+        $form = $crawler->selectButton('Войти')->form();
+        $form["email"] = $email;
+        $form["password"] = $password;
+        $client->submit($form);
+        $client->followRedirect();
+        return $client;
+    }
     public function testLessonsPage()
     {
         $client = static::createClient();
@@ -19,7 +34,7 @@ class LessonControllerTest extends AbstractTest
     }
     public function testShowLesson()
     {
-        $client = static::createClient();
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
         $link = $crawler->filter('.btn-link')->first();
@@ -28,7 +43,7 @@ class LessonControllerTest extends AbstractTest
     }
     public function testAddNewLesson()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawlerCourse = $client->clickLink('Перейти к курсу');
         $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
@@ -44,7 +59,7 @@ class LessonControllerTest extends AbstractTest
     }
     public function testInvalidLesson()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawlerCourse = $client->clickLink('Перейти к курсу');
         $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
@@ -74,7 +89,7 @@ class LessonControllerTest extends AbstractTest
 
     public function testEditLesson()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
         $link = $crawler->filter('.btn-link')->eq(1);
@@ -91,7 +106,7 @@ class LessonControllerTest extends AbstractTest
     }
     public function deleteLesson()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
         $links = $crawler->filter('lesson')->links();
@@ -103,5 +118,13 @@ class LessonControllerTest extends AbstractTest
         $this->assertSame(200, $client->getResponse()->getStatusCode());
         $this->assertCount(($countOfLessonsBefore-1), $crawler->filter('.btn-link')->count());
     }
-
+    public function testAddNewLessonNoAdmin()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $client->request('GET', '/courses/');
+        $crawlerCourse = $client->clickLink('Перейти к курсу');
+        $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
+        $addButtonCheck = $crawlerCourse->filter('Добавить урок')->count();
+        $this->assertSame(0,$addButtonCheck);
+    }
 }

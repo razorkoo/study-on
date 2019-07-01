@@ -3,7 +3,9 @@
 namespace App\Service;
 
 use http\Exception;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Twig\Environment;
 
 class BillingClient
 {
@@ -17,7 +19,7 @@ class BillingClient
     {
         return $this->curlExec("POST", "/api/v1/login", json_encode(['username'=>$username,'password'=>$password]));
     }
-    public function regiser($email,$passowrd)
+    public function register($email,$passowrd)
     {
         return $this->curlExec("POST", "/api/v1/register", json_encode(['email'=>$email, 'password'=>$passowrd]));
     }
@@ -42,6 +44,7 @@ class BillingClient
     }
     public function curlExec($method, $url, $data)
     {
+
         $curlExecutor = curl_init($this->host . $url);
         $returnedData = "";
         if ($method=="POST") {
@@ -52,11 +55,12 @@ class BillingClient
             $returnedData = curl_exec($curlExecutor);
             curl_close($curlExecutor);
             if ($this->checkResults($returnedData)) {
-                throw new \HttpException(503, curl_error($curlExecutor));
+
+                throw new HttpException(503, curl_error($curlExecutor));
             } else {
                 $parsedData = $this->checkJson($returnedData);
                 if ($parsedData == "Invalid JSON") {
-                    throw new \HttpException(503,"Invalid JSON");
+                    throw new HttpException(503, "Invalid JSON");
                 } else {
                     return $parsedData;
                 }
@@ -74,7 +78,7 @@ class BillingClient
             } else {
                 $parsedData = $this->checkJson($returnedData);
                 if ($parsedData == "Invalid JSON") {
-                    throw new \HttpException(503,"Invalid JSON");
+                    throw new HttpException(503,"Invalid JSON");
                 } else {
                     return $parsedData;
                 }

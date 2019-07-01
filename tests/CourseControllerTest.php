@@ -4,6 +4,7 @@ namespace App\Tests;
 
 use App\DataFixtures\CourseFixtures;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use App\Tests\mock\BillingClientMock;
 
 class CourseControllerTest extends AbstractTest
 {
@@ -11,7 +12,20 @@ class CourseControllerTest extends AbstractTest
     {
         return [CourseFixtures::class];
     }
-
+    public function authClient($email, $password)
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
+        $client->request('GET', '/courses/');
+        $crawler = $client->clickLink("Вход");
+        $form = $crawler->selectButton('Войти')->form();
+        $form["email"] = $email;
+        $form["password"] = $password;
+        $client->submit($form);
+        $client->followRedirect();
+        return $client;
+    }
     public function testIndexPage()
     {
         $client = static::createClient();
@@ -20,7 +34,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function testNewPage()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Добавить новый курс');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -42,7 +56,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function testEditPage()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
         $client->clickLink('Редактировать курс');
@@ -50,7 +64,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function testNewLessonPage()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
         $client->clickLink('Добавить урок');
@@ -78,7 +92,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function testCreateCoursePage()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
@@ -90,7 +104,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function testEditCourse()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
         $crawler = $client->clickLink('Редактировать курс');
@@ -104,7 +118,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function deleteCourse()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
@@ -121,7 +135,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function newCourseWithoutTitle()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
          $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
@@ -135,7 +149,7 @@ class CourseControllerTest extends AbstractTest
     }
     public function newCourseWithoutDescription()
     {
-        $client = static::createClient();
+        $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
@@ -146,5 +160,12 @@ class CourseControllerTest extends AbstractTest
             0,
             $crawler->filter('html:contains("Заполните это поле")')->count()
         );
+    }
+    public function noadminCreateCourse()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $crawler = $client->request('GET', '/courses/');
+        $client->clickLink('Добавить новый курс');
+        $this->assertSame(403, $client->getResponse()->getStatusCode());
     }
 }

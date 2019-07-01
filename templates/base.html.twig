@@ -5,11 +5,12 @@
         {% block stylesheets %}
             {{ encore_entry_link_tags('app') }}
         {% endblock %}
-        <header>
-            {{ include('navbar.html.twig') }}
-        </header>
+
     </head>
     <body>
+    <header>
+        {{ include('navbar.html.twig') }}
+    </header>
     <div class="container">
         {% block body %}{% endblock %}
         {% block javascripts %}

@@ -18,7 +18,13 @@ security:
             guard:
                 authenticators:
                     - App\Security\AppAuthenticator
-
+            remember_me:
+                secret:   '%kernel.secret%'
+                lifetime: 604800 #
+                path:     /
+            logout:
+                path: app_logout
+                target: /login
             # activate different ways to authenticate
 
             # http_basic: true

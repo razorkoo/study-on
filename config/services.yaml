@@ -29,3 +29,11 @@ services:
   App\doctrine\FixPostgreSQLDefaultSchemaListener:
     tags:
       - { name: doctrine.event_listener, event: postGenerateSchema }
+  App\Controller\CustomExceptionController:
+    public: true
+    arguments:
+      $debug: "%kernel.debug%"
+  App\Service\BillingClient:
+    public: true
+    arguments:
+      $queriesHost: "%env(BILLING_HOST)%"

@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Мой профиль
+{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-12">
+            <h5>Электронная почта пользователя:
+                {{app.user.getUserName}}</h5>
+            {% if is_granted('ROLE_SUPER_ADMIN') %}
+                <h5>Роль пользователя: Администратор</h5>
+            {% else %}
+                <h5>Роль пользователя: Пользователь</h5>
+            {% endif %}
+            <br>
+        </div>
+    </div>
+{% endblock %}

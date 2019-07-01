@@ -1,3 +1,20 @@
 <nav class="navbar navbar-light bg-light">
     <a class="navbar-brand" href="/courses/">Study on</a>
+    <div class="navbar-right">
+        {% if is_granted('ROLE_USER')==false %}
+            <a class="navbar-btn" href="{{ path('app_login') }}">Вход</a>
+        {% endif %}
+        {% if is_granted('ROLE_USER')==false %}
+            <a class="navbar-btn" href="{{ path('app_register') }}">Регистрация</a>
+        {% endif %}
+        {% if is_granted('ROLE_USER') %}
+            <a class="navbar-btn" href="{{ path('app_profile') }}">Профиль</a>
+        {% endif %}
+        {% if is_granted('ROLE_USER') %}
+            <a class="navbar-btn" href="{{ path('app_logout') }}">Выйти</a>
+        {% endif %}
+
+    </div>
+
+
 </nav>

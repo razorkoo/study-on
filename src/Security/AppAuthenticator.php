@@ -24,11 +24,12 @@ class AppAuthenticator extends AbstractFormLoginAuthenticator
 
     private $urlGenerator;
     private $csrfTokenManager;
-    private $biilingClient;
-    public function __construct(UrlGeneratorInterface $urlGenerator, CsrfTokenManagerInterface $csrfTokenManager)
+    private $billingClient;
+    public function __construct(UrlGeneratorInterface $urlGenerator, CsrfTokenManagerInterface $csrfTokenManager, BillingClient $billingClient)
     {
         $this->urlGenerator = $urlGenerator;
         $this->csrfTokenManager = $csrfTokenManager;
+        $this->billingClient = $billingClient;
     }
 
     public function supports(Request $request)
@@ -55,13 +56,13 @@ class AppAuthenticator extends AbstractFormLoginAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         $token = new CsrfToken('authenticate', $credentials['csrf_token']);
-        $billingClient = new BillingClient("billing.study-on.local");
         if (!$this->csrfTokenManager->isTokenValid($token)) {
             throw new InvalidCsrfTokenException();
         }
 
         try {
-            $login = $billingClient->login($credentials['email'], $credentials['password']);
+
+            $login = $this->billingClient->login($credentials['email'], $credentials['password']);
         } catch (\HttpException $ex) {
             throw new CustomUserMessageAuthenticationException("Сервис временно недоступен. Попробуйте авторизоваться позднее");
         }
