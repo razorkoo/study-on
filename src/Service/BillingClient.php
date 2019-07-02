@@ -48,12 +48,16 @@ class BillingClient
         $curlExecutor = curl_init($this->host . $url);
         $returnedData = "";
         if ($method=="POST") {
-            curl_setopt($curlExecutor, CURLOPT_RETURNTRANSFER,1);
-            curl_setopt($curlExecutor, CURLOPT_POST, 1);
-            curl_setopt($curlExecutor, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($curlExecutor, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            $returnedData = curl_exec($curlExecutor);
-            curl_close($curlExecutor);
+            try {
+                curl_setopt($curlExecutor, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($curlExecutor, CURLOPT_POST, 1);
+                curl_setopt($curlExecutor, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($curlExecutor, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+                $returnedData = curl_exec($curlExecutor);
+                curl_close($curlExecutor);
+            } catch(\Exception $ex) {
+                throw new HttpException(503, curl_error($curlExecutor));
+            }
             if ($this->checkResults($returnedData)) {
 
                 throw new HttpException(503, curl_error($curlExecutor));

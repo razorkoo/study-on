@@ -127,4 +127,22 @@ class LessonControllerTest extends AbstractTest
         $addButtonCheck = $crawlerCourse->filter('Добавить урок')->count();
         $this->assertSame(0,$addButtonCheck);
     }
+    public function testEditLessonNoAdmin()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $client->request('GET', '/courses/');
+        $crawlerCourse = $client->clickLink('Перейти к курсу');
+        $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
+        $addButtonCheck = $crawlerCourse->filter('Редактировать')->count();
+        $this->assertSame(0,$addButtonCheck);
+    }
+    public function testDeleteLessonNoAdmin()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $client->request('GET', '/courses/');
+        $crawlerCourse = $client->clickLink('Перейти к курсу');
+        $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
+        $addButtonCheck = $crawlerCourse->filter('удалить')->count();
+        $this->assertSame(0,$addButtonCheck);
+    }
 }

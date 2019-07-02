@@ -168,4 +168,26 @@ class CourseControllerTest extends AbstractTest
         $client->clickLink('Добавить новый курс');
         $this->assertSame(403, $client->getResponse()->getStatusCode());
     }
+    public function noadminCreateCourseButton()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $crawler = $client->request('GET', '/courses/');
+        $client->clickLink('Добавить новый курс');
+        $this->assertSame(0,$crawler->filter('Добавить новый курс')->count());
+    }
+    public function testEditCourseNoAdmin()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $client->request('GET', '/courses/');
+        $crawler = $client->clickLink('Перейти к курсу');
+        $this->assertSame(0,$crawler->filter('Редактировать курс')->count());
+
+    }
+    public function testDeleteCourseNoAdmin()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $client->request('GET', '/courses/');
+        $crawler = $client->clickLink('Перейти к курсу');
+        $this->assertSame(0,$crawler->filter('Удалить')->count());
+    }
 }
