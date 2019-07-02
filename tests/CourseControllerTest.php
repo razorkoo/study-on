@@ -38,6 +38,7 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Добавить новый курс');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
     }
     public function testShowPage()
     {
@@ -45,13 +46,16 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
     }
     public function testShowCoursesPage()
     {
         $client = static::createClient();
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $client->clickLink('К списку курсов');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $this->assertSame(200, $client->getResponse()->getStatusCode());
     }
     public function testEditPage()
@@ -59,7 +63,9 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $client->clickLink('Редактировать курс');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $this->assertSame(200, $client->getResponse()->getStatusCode());
     }
     public function testNewLessonPage()
@@ -67,7 +73,9 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $client->clickLink('Добавить урок');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $this->assertSame(200, $client->getResponse()->getStatusCode());
     }
     public function testCountCourses()
@@ -95,6 +103,7 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
         $newCourseForm["course[title]"] = "Это тестовый урок";
         $newCourseForm["course[description]"] = "Это описание тестового урока";
@@ -107,7 +116,9 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $crawler = $client->clickLink('Редактировать курс');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $courseForm = $crawler->selectButton('Сохранить')->form();
         $courseForm["course[title]"] = "Это измененный урок";
         $courseForm["course[description]"] = "это изменение описания урока";
@@ -121,12 +132,14 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
         $newCourseForm["course[title]"] = "Это тестовый урок2";
         $newCourseForm["course[description]"] = "Это описание тестового урока2";
         $client->submit($newCourseForm);
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $deleteCourseForm = $crawler->selectButton('Удалить')->form();
         $client->submit($deleteCourseForm);
         $crawler = $client->followRedirect();
@@ -138,6 +151,7 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
          $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
         $newCourseForm["course[title]"] = "";
         $newCourseForm["course[description]"] = "Это описание тестового урока2";
@@ -152,6 +166,7 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Добавить новый курс');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
         $newCourseForm["course[title]"] = "тест";
         $newCourseForm["course[description]"] = "";
@@ -161,18 +176,11 @@ class CourseControllerTest extends AbstractTest
             $crawler->filter('html:contains("Заполните это поле")')->count()
         );
     }
-    public function noadminCreateCourse()
-    {
-        $client = $this->authClient('test@gmail.com', 'aaaaaa');
-        $crawler = $client->request('GET', '/courses/');
-        $client->clickLink('Добавить новый курс');
-        $this->assertSame(403, $client->getResponse()->getStatusCode());
-    }
     public function noadminCreateCourseButton()
     {
         $client = $this->authClient('test@gmail.com', 'aaaaaa');
         $crawler = $client->request('GET', '/courses/');
-        $client->clickLink('Добавить новый курс');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $this->assertSame(0,$crawler->filter('Добавить новый курс')->count());
     }
     public function testEditCourseNoAdmin()
@@ -180,6 +188,7 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('test@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $this->assertSame(0,$crawler->filter('Редактировать курс')->count());
 
     }
@@ -188,6 +197,7 @@ class CourseControllerTest extends AbstractTest
         $client = $this->authClient('test@gmail.com', 'aaaaaa');
         $client->request('GET', '/courses/');
         $crawler = $client->clickLink('Перейти к курсу');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
         $this->assertSame(0,$crawler->filter('Удалить')->count());
     }
 }
