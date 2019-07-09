@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Cocur\Slugify\Slugify;
 
 /**
  * @Route("/courses")
@@ -46,6 +47,9 @@ class CourseController extends AbstractController
 
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $slugify = new Slugify();
+            $slug = $slugify->slugify($course->getTitle());
+            $course->setSlug($slug);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($course);
             $entityManager->flush();
@@ -60,9 +64,9 @@ class CourseController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="course_show", methods={"GET"})
+     * @Route("/{slug}", name="course_show", methods={"GET"})
      */
-    public function show(Course $course): Response
+    public function show($slug,Course $course): Response
     {
         $lessons = $course->getLessons();
 
@@ -73,7 +77,7 @@ class CourseController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="course_edit", methods={"GET","POST"})
+     * @Route("/{slug}/edit", name="course_edit", methods={"GET","POST"})
      * @IsGranted("ROLE_SUPER_ADMIN")
      */
     public function edit(Request $request, Course $course): Response
@@ -83,7 +87,12 @@ class CourseController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
-
+            $slugify = new Slugify();
+            $slug = $slugify->slugify($course->getTitle());
+            $course->setSlug($slug);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($course);
+            $entityManager->flush();
             return $this->redirectToRoute('course_index', [
                 'id' => $course->getId(),
             ]);
@@ -96,7 +105,7 @@ class CourseController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="course_delete", methods={"DELETE"})
+     * @Route("/{slug}", name="course_delete", methods={"DELETE"})
      * @IsGranted("ROLE_SUPER_ADMIN")
      */
     public function delete(Request $request, Course $course): Response

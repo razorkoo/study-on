@@ -35,6 +35,11 @@ class Course
      */
     private $lessons;
 
+    /**
+     * @ORM\Column(type="string", length=255, unique=true)
+     */
+    private $slug;
+
     public function __construct()
     {
         $this->lessons = new ArrayCollection();
@@ -96,6 +101,18 @@ class Course
                 $lesson->setLessonCourse(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
 
         return $this;
     }

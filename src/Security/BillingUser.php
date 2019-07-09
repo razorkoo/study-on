@@ -9,7 +9,7 @@ class BillingUser implements UserInterface
     private $email;
     private $token;
     private $roles = [];
-
+    private $refreshToken​;
 
     public function getEmail(): ?string
     {
@@ -59,6 +59,15 @@ class BillingUser implements UserInterface
     public function getToken(): ?string
     {
         return $this->token;
+    }
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken​;
+    }
+    public function setRefreshToken($refreshToken): self
+    {
+        $this->refreshToken​ = $refreshToken;
+        return $this;
     }
     /**
      * @see UserInterface

@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Course;
 use App\Entity\Lesson;
+use Cocur\Slugify\Slugify;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
 
@@ -27,8 +28,10 @@ class CourseFixtures extends Fixture
         $countLessons = 3;
         for($i=0;$i<$countCourses;$i++){
 
+            $slugify = new Slugify();
             $course= new Course();
             $course->setTitle($courses[$i]);
+            $course->setSlug($slugify->slugify($courses[$i]));
             $course->setDescription($coursesDescription[$i]);
             $manager->persist($course);
 

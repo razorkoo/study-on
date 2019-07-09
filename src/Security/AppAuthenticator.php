@@ -73,6 +73,7 @@ class AppAuthenticator extends AbstractFormLoginAuthenticator
             $user = $userProvider->loadUserByUsername($credentials['email']);
             $user->setToken($login['token']);
             $user->setRoles($login['roles']);
+            $user->setRefreshToken($login['refresh_token']);
         }
         return $user;
     }

@@ -23,6 +23,10 @@ class BillingClient
     {
         return $this->curlExec("POST", "/api/v1/register", json_encode(['email'=>$email, 'password'=>$passowrd]));
     }
+    public function sendRefreshRequest($refreshToken)
+    {
+        return $this->curlExec("POST", '/api/v1/token/refresh', json_encode(['refresh_token' => $refreshToken]));
+    }
 
 
     public function checkResults($results)
@@ -88,5 +92,12 @@ class BillingClient
                 }
             }
         }
+    }
+    public function decodePayload($token)
+    {
+        $tokenParts = explode(".", $token);
+        $tokenPayload = base64_decode($tokenParts[1]);
+        $jwtPayload = json_decode($tokenPayload);
+        return $jwtPayload;
     }
 }

@@ -1,5 +1,5 @@
 <div style="float:right">
-<form method="post" action="{{ path('course_delete', {'id': course.id}) }}" onsubmit="return confirm('Вы уверены, что хотите удалить данный курс?');">
+<form method="post" action="{{ path('course_delete', {'slug': course.slug}) }}" onsubmit="return confirm('Вы уверены, что хотите удалить данный курс?');">
     <input type="hidden" name="_method" value="DELETE">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
     <button class="btn btn-danger">Удалить</button>

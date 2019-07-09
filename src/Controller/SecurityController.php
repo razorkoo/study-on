@@ -67,6 +67,7 @@ class SecurityController extends AbstractController
                         $user->setEmail($data['email']);
                         $user->setToken($response['userToken']);
                         $user->setRoles($response['roles']);
+                        $user->setRefreshToken($response['refresh_token']);
                         return $guardHandler->authenticateUserAndHandleSuccess(
                             $user,
                             $request,

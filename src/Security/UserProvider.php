@@ -28,7 +28,11 @@ class UserProvider implements UserProviderInterface
         $user->setEmail($username);
         return $user;
     }
-
+    private $billingClient;
+    public function __construct(BillingClient $billingClient)
+    {
+        $this->billingClient = $billingClient;
+    }
     /**
      * Refreshes the user after being reloaded from the session.
      *
@@ -47,7 +51,12 @@ class UserProvider implements UserProviderInterface
         if (!$user instanceof BillingUser) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
         }
-
+        $expTime = $this->billingClient->decodePayload($user->getToken())->exp;
+        $currentDate = ((new \DateTime())->modify('+0 hour'))->getTimestamp();
+        if ($currentDate > $expTime) {
+            $response = $this->billingClient->sendRefreshRequest($user->getRefreshToken());
+            $user->setToken($response['token']);
+        }
         // Return a User object after making sure its data is "fresh".
         // Or throw a UsernameNotFoundException if the user no longer exists.
         return $user;
