@@ -52,7 +52,7 @@ class LessonController extends AbstractController
                 $entityManager->persist($newCourse);
                 $entityManager->flush();
                 $response = $this->forward('App\Controller\CourseController::show', [
-                    'id'  => $courseId
+                    'slug'  => $newCourse->getSlug()
                 ]);
                 return $response;
             }
@@ -73,19 +73,28 @@ class LessonController extends AbstractController
     public function show(Lesson $lesson,  BillingClient $billingClient): Response
     {
         $user = $this->getUser();
-        if($user) {
-            $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $lesson->getLessonCourse()->getSlug()]);
-            //print(count($getPayInformation));
+        if ($user) {
             $billingCourse = $billingClient->getDetailCourseInfo($lesson->getLessonCourse()->getSlug());
+            if ($billingCourse['type'] == 'rent') {
+                $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $lesson->getLessonCourse()->getSlug(), 'skip_expired' => 1]);
+            } else {
+                $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $lesson->getLessonCourse()->getSlug()]);
+            }
+            //print(count($getPayInformation));
+
             if (array_key_exists('message', $getPayInformation)) {
-                $this->addFlash('failed_lesson','Курс не оплачен');
+                $this->addFlash('failed_lesson', 'Курс не оплачен');
                 return $this->render('lesson/show.html.twig', [
-                    'error_message'=>'Курс не оплачен'
+                    'error_message'=>'Курс не оплачен',
+                    'lesson' => $lesson,
+                    'course'=>$lesson->getLessonCourse(),
                 ]);
             } else {
                 if (count($getPayInformation) <= 0) {
                     return $this->render('lesson/show.html.twig', [
-                        'error_message'=>'Курс не оплачен'
+                        'error_message'=>'Курс не оплачен',
+                        'lesson' => $lesson,
+                        'course'=>$lesson->getLessonCourse(),
                     ]);
                 } elseif (count($getPayInformation) > 0 && $billingCourse['type'] == 'rent') {
                     foreach ($getPayInformation as $transaction) {
@@ -93,7 +102,9 @@ class LessonController extends AbstractController
                             $transaction['expired_at'] = new \DateTime($transaction['expired_at']);
                             if (new \DateTime() > $transaction['expired_at']) {
                                 return $this->render('lesson/show.html.twig', [
-                                    'error_message'=>'Срок аренды истек'
+                                    'error_message'=>'Срок аренды истек',
+                                    'lesson' => $lesson,
+                                    'course'=>$lesson->getLessonCourse(),
                                 ]);
                             }
                         }
@@ -101,11 +112,12 @@ class LessonController extends AbstractController
                 }
             }
         } else {
-            $this->render('paid.html.twig',['error_message'=>'Вы не авторизованы']);
+            $this->render('paid.html.twig', ['error_message'=>'Вы не авторизованы']);
         }
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
             'course'=>$lesson->getLessonCourse(),
+            'error_message'=>null
         ]);
     }
 
@@ -121,7 +133,7 @@ class LessonController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('lesson_index', [
+            return $this->redirectToRoute('lesson_show', [
                 'id' => $lesson->getId(),
             ]);
         }
@@ -145,7 +157,7 @@ class LessonController extends AbstractController
             $entityManager->flush();
         }
         $response = $this->forward('App\Controller\CourseController::show', [
-            'id'  => $idCourse]);
+            'slug'  => $idCourse->getSlug()]);
         return $response;
     }
 }

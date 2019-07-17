@@ -31,20 +31,23 @@ class CourseController extends AbstractController
         $courses = $this->getDoctrine()->getRepository(Course::class)->findAll();
         $coursesBilling = $billingClient->getAllCourses();
         $mergedCourses = [];
-        foreach($courses as $course) {
-            foreach($coursesBilling as $cb) {
+        foreach ($courses as $course) {
+            foreach ($coursesBilling as $cb) {
                 if ($course->getSlug() == $cb['code']) {
                     $courseModel = new CourseModel();
                     $courseModel->course = $course;
-                    $courseModel->price = $cb['price'];
+
                     if ($cb['type'] == 'rent') {
                         $courseModel->type = "Аренда";
+                        $courseModel->price = $cb['price'];
                     }
-                    if($cb['type'] == 'full') {
+                    if ($cb['type'] == 'full') {
                         $courseModel->type = "Покупка";
+                        $courseModel->price = $cb['price'];
                     }
-                    if($cb['type'] == 'free') {
+                    if ($cb['type'] == 'free') {
                         $courseModel->type = "Бесплатный";
+                        $courseModel->price=0.0;
                     }
                     $mergedCourses[] = $courseModel;
                 }
@@ -92,7 +95,7 @@ class CourseController extends AbstractController
     /**
      * @Route("/{slug}", name="course_show", methods={"GET"})
      */
-    public function show($slug,Course $course,  BillingClient $billingClient): Response
+    public function show($slug, Course $course,  BillingClient $billingClient): Response
     {
 
         $lessons = $course->getLessons();
@@ -101,12 +104,14 @@ class CourseController extends AbstractController
 
 
         $mergedCourse = new CourseModel();
-        if($user) {
+        if ($user) {
             $mergedCourse->canPay = 'enabled';
 
             $user_current = $billingClient->getCurrentInformation($user->getToken());
-            if($user_current['balance'] < $billingCourse['price']) {
-                $mergedCourse->canPay='disabled';
+            if ($billingCourse['type']!='free') {
+                if ($user_current['balance'] < $billingCourse['price']) {
+                    $mergedCourse->canPay = 'disabled';
+                }
             }
             $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $course->getSlug()]);
             if (array_key_exists('message', $getPayInformation)) {
@@ -132,14 +137,17 @@ class CourseController extends AbstractController
         $mergedCourse->course = $course;
         if ($billingCourse['type'] == 'rent') {
             $mergedCourse->type = "Аренда";
+            $mergedCourse->price = $billingCourse['price'];
         }
-        if($billingCourse['type'] == 'full') {
+        if ($billingCourse['type'] == 'full') {
             $mergedCourse->type = "Покупка";
+            $mergedCourse->price = $billingCourse['price'];
         }
-        if($billingCourse['type'] == 'free') {
+        if ($billingCourse['type'] == 'free') {
             $mergedCourse->type = "Бесплатный";
+            $mergedCourse->price = 0.0;
         }
-        $mergedCourse->price = $billingCourse['price'];
+
         return $this->render('course/show.html.twig', [
             'course' => $course,
             'lessons'=>$lessons,
@@ -193,15 +201,15 @@ class CourseController extends AbstractController
      * @Route("/pay/{slug}", name="course_pay", methods={"GET"})
      * @IsGranted("ROLE_USER")
      */
-    public function payCourse($slug,Request $request, Course $course, BillingClient $billingClient): Response
+    public function payCourse($slug, Request $request, Course $course, BillingClient $billingClient): Response
     {
         $user = $this->getUser();
-        $payResult = $billingClient->payCourse($slug,$user->getToken());
+        $payResult = $billingClient->payCourse($slug, $user->getToken());
 
-        if (array_key_exists("success",$payResult)) {
-            $this->addFlash("success","Курс успешно куплен");
+        if (array_key_exists("success", $payResult)) {
+            $this->addFlash("success", "Курс успешно куплен");
         } else {
-            $this->addFlash("failed",$payResult['message']);
+            $this->addFlash("failed", $payResult['message']);
         }
         return $this->redirect("/courses/$slug");
     }
