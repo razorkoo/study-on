@@ -5,7 +5,10 @@ namespace App\Controller;
 use App\Entity\Course;
 use App\Form\Course1Type;
 use App\Form\CourseType;
+use App\Entity\CourseModel;
 use App\Repository\CourseRepository;
+use App\Service\BillingClient;
+use DeepCopy\f001\A;
 use Doctrine\DBAL\Types\TextType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,12 +25,35 @@ class CourseController extends AbstractController
     /**
      * @Route("/", name="course_index", methods={"GET"})
      */
-    public function index(CourseRepository $courseRepository): Response
+    public function index(CourseRepository $courseRepository, BillingClient $billingClient): Response
     {
 
         $courses = $this->getDoctrine()->getRepository(Course::class)->findAll();
+        $coursesBilling = $billingClient->getAllCourses();
+        $mergedCourses = [];
+        foreach($courses as $course) {
+            foreach($coursesBilling as $cb) {
+                if ($course->getSlug() == $cb['code']) {
+                    $courseModel = new CourseModel();
+                    $courseModel->course = $course;
+                    $courseModel->price = $cb['price'];
+                    if ($cb['type'] == 'rent') {
+                        $courseModel->type = "Аренда";
+                    }
+                    if($cb['type'] == 'full') {
+                        $courseModel->type = "Покупка";
+                    }
+                    if($cb['type'] == 'free') {
+                        $courseModel->type = "Бесплатный";
+                    }
+                    $mergedCourses[] = $courseModel;
+                }
+            }
+        }
+
         return $this->render('course/index.html.twig', [
             'courses' => $courses,
+            'mergedCourses' => $mergedCourses
         ]);
     }
 
@@ -66,13 +92,58 @@ class CourseController extends AbstractController
     /**
      * @Route("/{slug}", name="course_show", methods={"GET"})
      */
-    public function show($slug,Course $course): Response
+    public function show($slug,Course $course,  BillingClient $billingClient): Response
     {
-        $lessons = $course->getLessons();
 
+        $lessons = $course->getLessons();
+        $billingCourse = $billingClient->getDetailCourseInfo($course->getSlug());
+        $user = $this->getUser();
+
+
+        $mergedCourse = new CourseModel();
+        if($user) {
+            $mergedCourse->canPay = 'enabled';
+
+            $user_current = $billingClient->getCurrentInformation($user->getToken());
+            if($user_current['balance'] < $billingCourse['price']) {
+                $mergedCourse->canPay='disabled';
+            }
+            $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $course->getSlug()]);
+            if (array_key_exists('message', $getPayInformation)) {
+
+                $mergedCourse->isPaidByUser = false;
+            } else {
+                if (count($getPayInformation) > 0 && ($billingCourse['type'] == 'full' || $billingCourse['type'] == 'free')) {
+                    $mergedCourse->isPaidByUser = true;
+                } elseif (count($getPayInformation) > 0 && $billingCourse['type'] == 'rent') {
+                    foreach ($getPayInformation as $transaction) {
+                        if (array_key_exists('expired_at', $transaction)) {
+                            $transaction['expired_at'] = new \DateTime($transaction['expired_at']);
+                            if (new \DateTime() < $transaction['expired_at']) {
+                                $mergedCourse->isPaidByUser = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //print($getPayInformation['message']);
+
+        $mergedCourse->course = $course;
+        if ($billingCourse['type'] == 'rent') {
+            $mergedCourse->type = "Аренда";
+        }
+        if($billingCourse['type'] == 'full') {
+            $mergedCourse->type = "Покупка";
+        }
+        if($billingCourse['type'] == 'free') {
+            $mergedCourse->type = "Бесплатный";
+        }
+        $mergedCourse->price = $billingCourse['price'];
         return $this->render('course/show.html.twig', [
             'course' => $course,
             'lessons'=>$lessons,
+            'mergedCourse' => $mergedCourse
         ]);
     }
 
@@ -117,5 +188,21 @@ class CourseController extends AbstractController
         }
 
         return $this->redirectToRoute('course_index');
+    }
+    /**
+     * @Route("/pay/{slug}", name="course_pay", methods={"GET"})
+     * @IsGranted("ROLE_USER")
+     */
+    public function payCourse($slug,Request $request, Course $course, BillingClient $billingClient): Response
+    {
+        $user = $this->getUser();
+        $payResult = $billingClient->payCourse($slug,$user->getToken());
+
+        if (array_key_exists("success",$payResult)) {
+            $this->addFlash("success","Курс успешно куплен");
+        } else {
+            $this->addFlash("failed",$payResult['message']);
+        }
+        return $this->redirect("/courses/$slug");
     }
 }

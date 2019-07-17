@@ -15,6 +15,7 @@ console.log('Hello Webpack Encore! Edit me in assets/js/app.js');
 
 const $ = require('jquery');
 require('bootstrap');
+require('popper.js');
 $(document).ready(function() {
     $('[data-toggle="popover"]').popover();
 });

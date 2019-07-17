@@ -3,9 +3,13 @@
 {% block title %}Lesson{% endblock %}
 
 {% block body %}
+    <div class="alert alert-danger">
+        {{ error_message }}
+    </div>
+    {% if not error_message  %}
     <h1>{{ lesson.title }}</h1>
 
-    <p>Курс <a href="{{ path('course_show', {id: lesson.lessonCourse.id}) }}">{{course.title}}</a></p>
+    <p>Курс <a href="{{ path('course_show', {slug: lesson.lessonCourse.slug}) }}">{{course.title}}</a></p>
     {% if is_granted('ROLE_SUPER_ADMIN') %}
     <div>
         <a class="btn btn-secondary" href="{{ path('lesson_edit', {'id': lesson.id}) }}">Редактировать</a>
@@ -18,5 +22,5 @@
             {{ lesson.content }}
         </div>
     </div>
-
+    {% endif %}
     {% endblock %}

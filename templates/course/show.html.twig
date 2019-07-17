@@ -4,7 +4,20 @@
 
 {% block body %}
     <h1>{{ course.title }}</h1>
+    <h1>Тип курса: {{ mergedCourse.type }}</h1>
+    <h1>Цена курса: {{ mergedCourse.price }}</h1>
     {{ course.description }}
+    <br>
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('failed') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
     <br>
     <h1>Уроки</h1>
     <ol>
@@ -18,6 +31,24 @@
 
     <hr>
     <div>
+        {% if mergedCourse.isPaidByUser == false %}
+            {% if mergedCourse.type == 'Аренда' %}
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" {{ mergedCourse.canPay }}>
+                    Арендовать
+                </button>
+            {% endif %}
+            {% if mergedCourse.type == 'Покупка' %}
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" {{ mergedCourse.canPay }}>
+                    Купить
+                </button>
+            {% endif %}
+            {% if mergedCourse.type == 'Бесплатный' %}
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" {{ mergedCourse.canPay }}>
+                    Получить
+                </button>
+            {% endif %}
+        {% endif %}
+
         <a href="{{ path('course_index') }}" class="btn btn-secondary">К списку курсов</a>
         {% if is_granted('ROLE_SUPER_ADMIN') %}
         <a href="{{ path('course_edit', {'slug': course.slug }) }}" class="btn btn-secondary">Редактировать курс</a>
@@ -28,5 +59,23 @@
         {% endif %}
 
     </div>
-
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Подтвердите покупку</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Вы действительно хотите приобрести курс?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отменить</button>
+                    <a class="btn btn-primary" href="{{ path('course_pay', {'slug': course.slug}) }}">Подтвердить</a>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -93,8 +93,36 @@ class SecurityController extends AbstractController
      * @Route("/profile", name="app_profile", methods={"GET"})
      * @IsGranted("ROLE_USER")
      */
-    public function profile(): Response
+    public function profile(BillingClient $billingClient): Response
     {
-        return $this->render('security/profile.html.twig');
+        $user = $this->getUser();
+        $currentUserData = $billingClient->getCurrentInformation($user->getToken());
+        return $this->render('security/profile.html.twig', array('balance'=>$currentUserData['balance']));
+    }
+    /**
+     * @Route("/profile/transactions", name="transactions")
+     * @IsGranted("ROLE_USER")
+     */
+    public function transactions(BillingClient $billingClient)
+    {
+        $user = $this->getUser();
+        $response = $billingClient->getTransactions($user->getToken());
+        $error = null;
+        if (array_key_exists('message',$response)) {
+            $error = $response['message'];
+            return $this->render('security/transactions.html.twig', ['user' => $user, 'transactions' => null, 'error' => $error]);
+        } else {
+            foreach($response as $transaction) {
+                if(array_key_exists('expired_at',$transaction)) {
+                    $transaction['expired_at'] =  new \DateTime($transaction['expired_at']);
+                }
+            }
+           /* for ($i = 0, $iMax = count($response['data']); $i < $iMax; $i++) {
+                if (array_key_exists('expired_at', $response['data'][$i])) {
+                    $response['data'][$i]['expired_at'] = new \DateTime($response['data'][$i]['expired_at']['date']);
+                }
+            }*/
+        }
+        return $this->render('security/transactions.html.twig', ['user' => $user, 'transactions' => $response, 'error' => $error]);
     }
 }

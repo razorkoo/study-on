@@ -13,7 +13,9 @@
             {% else %}
                 <h5>Роль пользователя: Пользователь</h5>
             {% endif %}
+            <h5>Ваш баланс: {{ balance }}</h5>
             <br>
+            <a href="{{ path('transactions') }}" class="btn btn-primary">Transactions</a>
         </div>
     </div>
 {% endblock %}

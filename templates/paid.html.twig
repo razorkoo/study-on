@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    {% for message in app.flashes('failed_lesson') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+    <div class="alert alert-danger">
+        {{ error_message }}
+    </div>
+
+{% endblock %}

@@ -7,6 +7,7 @@ use App\Entity\Lesson;
 use App\Form\Course1Type;
 use App\Form\LessonType;
 use App\Repository\LessonRepository;
+use App\Service\BillingClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -69,8 +70,39 @@ class LessonController extends AbstractController
      * @Route("/{id}", name="lesson_show", methods={"GET"})
      * @IsGranted("ROLE_USER")
      */
-    public function show(Lesson $lesson): Response
+    public function show(Lesson $lesson,  BillingClient $billingClient): Response
     {
+        $user = $this->getUser();
+        if($user) {
+            $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $lesson->getLessonCourse()->getSlug()]);
+            //print(count($getPayInformation));
+            $billingCourse = $billingClient->getDetailCourseInfo($lesson->getLessonCourse()->getSlug());
+            if (array_key_exists('message', $getPayInformation)) {
+                $this->addFlash('failed_lesson','Курс не оплачен');
+                return $this->render('lesson/show.html.twig', [
+                    'error_message'=>'Курс не оплачен'
+                ]);
+            } else {
+                if (count($getPayInformation) <= 0) {
+                    return $this->render('lesson/show.html.twig', [
+                        'error_message'=>'Курс не оплачен'
+                    ]);
+                } elseif (count($getPayInformation) > 0 && $billingCourse['type'] == 'rent') {
+                    foreach ($getPayInformation as $transaction) {
+                        if (array_key_exists('expired_at', $transaction)) {
+                            $transaction['expired_at'] = new \DateTime($transaction['expired_at']);
+                            if (new \DateTime() > $transaction['expired_at']) {
+                                return $this->render('lesson/show.html.twig', [
+                                    'error_message'=>'Срок аренды истек'
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $this->render('paid.html.twig',['error_message'=>'Вы не авторизованы']);
+        }
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
             'course'=>$lesson->getLessonCourse(),
