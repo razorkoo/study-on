@@ -19,7 +19,7 @@ class BillingClient
     {
         return $this->curlExec("POST", "/api/v1/login", json_encode(['username'=>$username,'password'=>$password]));
     }
-    public function register($email,$passowrd)
+    public function register($email, $passowrd)
     {
         return $this->curlExec("POST", "/api/v1/register", json_encode(['email'=>$email, 'password'=>$passowrd]));
     }
@@ -29,29 +29,29 @@ class BillingClient
     }
     public function getCurrentInformation($token)
     {
-        return $this->curlExec("GET",'/api/v1/users/current',"",$token);
+        return $this->curlExec("GET", '/api/v1/users/current', "", $token);
     }
 
-    public function getTransactions($token, array $filters=null)
+    public function getTransactions($token, array $filters = null)
     {
         $url = '/api/v1/transactions';
         if ($filters) {
             $url = $url . '?' . http_build_query($filters);
         }
-        return $this->curlExec("GET",$url,"",$token);
+        return $this->curlExec("GET", $url, "", $token);
     }
 
     public function getAllCourses()
     {
-        return $this->curlExec("GET","/api/v1/courses","");
+        return $this->curlExec("GET", "/api/v1/courses", "");
     }
     public function getDetailCourseInfo($course)
     {
-        return $this->curlExec("GET","/api/v1/courses/$course","");
+        return $this->curlExec("GET", "/api/v1/courses/$course", "");
     }
-    public function payCourse($course,$token)
+    public function payCourse($course, $token)
     {
-        return $this->curlExec("GET","/api/v1/courses/$course/pay","",$token);
+        return $this->curlExec("GET", "/api/v1/courses/$course/pay", "", $token);
     }
 
     public function checkResults($results)
@@ -64,7 +64,7 @@ class BillingClient
     }
     public function checkJson($results)
     {
-        $parsedResults = json_decode($results,true);
+        $parsedResults = json_decode($results, true);
         if ($parsedResults == null) {
             return "Invalid JSON";
         } else {
@@ -105,7 +105,7 @@ class BillingClient
             }
         }
         if ($method == "GET") {
-            curl_setopt($curlExecutor, CURLOPT_RETURNTRANSFER,1);
+            curl_setopt($curlExecutor, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curlExecutor, CURLOPT_HTTPGET, 1);
             $returnedData = curl_exec($curlExecutor);
             curl_close($curlExecutor);
@@ -114,7 +114,7 @@ class BillingClient
             } else {
                 $parsedData = $this->checkJson($returnedData);
                 if ($parsedData == "Invalid JSON") {
-                    throw new HttpException(503,"Invalid JSON");
+                    throw new HttpException(503, "Invalid JSON");
                 } else {
                     return $parsedData;
                 }

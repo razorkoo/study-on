@@ -8,7 +8,6 @@ use App\Form\CourseType;
 use App\Entity\CourseModel;
 use App\Repository\CourseRepository;
 use App\Service\BillingClient;
-use DeepCopy\f001\A;
 use Doctrine\DBAL\Types\TextType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,7 +94,7 @@ class CourseController extends AbstractController
     /**
      * @Route("/{slug}", name="course_show", methods={"GET"})
      */
-    public function show($slug, Course $course,  BillingClient $billingClient): Response
+    public function show($slug, Course $course, BillingClient $billingClient): Response
     {
 
         $lessons = $course->getLessons();
@@ -115,7 +114,6 @@ class CourseController extends AbstractController
             }
             $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $course->getSlug()]);
             if (array_key_exists('message', $getPayInformation)) {
-
                 $mergedCourse->isPaidByUser = false;
             } else {
                 if (count($getPayInformation) > 0 && ($billingCourse['type'] == 'full' || $billingCourse['type'] == 'free')) {

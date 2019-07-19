@@ -12,7 +12,7 @@ class CourseFixtures extends Fixture
 {
     public function load(ObjectManager $manager)
     {
-        $courses = ['Курс мобильной разработки','Курс веб разработки','Курс программирования на c++'];
+        $courses = ['Курс программирования на C','Курс веб разработки для новичков3','Курс веб разработки для новичков'];
         $coursesDescription = ['В рамках данного курса Вы научитесь разрабатывать мобильные 
         приложения под любую платформу',
             'В рамках данного курса Вы научитесь разрабатывать веб приложения',
@@ -26,8 +26,7 @@ class CourseFixtures extends Fixture
             ['Разные IDE для разработки под C++','Первое приложение','STD']];
         $countCourses = 3;
         $countLessons = 3;
-        for($i=0;$i<$countCourses;$i++){
-
+        for ($i=0; $i < $countCourses; $i++) {
             $slugify = new Slugify();
             $course= new Course();
             $course->setTitle($courses[$i]);
@@ -35,7 +34,7 @@ class CourseFixtures extends Fixture
             $course->setDescription($coursesDescription[$i]);
             $manager->persist($course);
 
-            for($j=0;$j<$countLessons;$j++){
+            for ($j=0; $j<$countLessons; $j++) {
                 $lesson = new Lesson();
                 $lesson->setLessonCourse($course);
                 $lesson->setTitle($lessons[$i][$j]);

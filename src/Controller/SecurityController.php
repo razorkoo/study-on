@@ -33,7 +33,7 @@ class SecurityController extends AbstractController
     /**
      * @Route("/register", name="app_register")
      */
-    public function register(Request $request, BillingClient $billingClient ,GuardAuthenticatorHandler $guardHandler, AppAuthenticator $authenticator)
+    public function register(Request $request, BillingClient $billingClient, GuardAuthenticatorHandler $guardHandler, AppAuthenticator $authenticator)
     {
         $auth = $this->get('security.authorization_checker');
         if ($auth->isGranted('ROLE_USER')) {
@@ -108,12 +108,12 @@ class SecurityController extends AbstractController
         $user = $this->getUser();
         $response = $billingClient->getTransactions($user->getToken());
         $error = null;
-        if (array_key_exists('message',$response)) {
+        if (array_key_exists('message', $response)) {
             $error = $response['message'];
             return $this->render('security/transactions.html.twig', ['user' => $user, 'transactions' => null, 'error' => $error]);
         } else {
-            foreach($response as $transaction) {
-                if(array_key_exists('expired_at',$transaction)) {
+            foreach ($response as $transaction) {
+                if (array_key_exists('expired_at', $transaction)) {
                     $transaction['expired_at'] =  new \DateTime($transaction['expired_at']);
                 }
             }

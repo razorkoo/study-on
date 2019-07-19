@@ -12,6 +12,7 @@ class SecurityControllerTest extends AbstractTest
     {
         return [CourseFixtures::class];
     }
+
     public function login($email, $password)
     {
         $client = static::createClient();
@@ -105,5 +106,21 @@ class SecurityControllerTest extends AbstractTest
         $client->submit($form);
         $this->assertContains("Wrong email format", $client->getResponse()->getContent());
     }
-
+    public function testTransactionPage()
+    {
+        $client = $this->login('testadmin@gmail.com', 'aaaaaa');
+        $client->request('GET', '/courses/');
+        $client->clickLink('Профиль');
+        $crawler = $client->clickLink('Transactions');
+        $noTransactions = $crawler->filter('У вас нет транзакций')->count();
+        $this->assertSame(0, $noTransactions);
+    }
+    public function testNoTransactionPage()
+    {
+        $client = $this->login('test@gmail.com', 'aaaaaa');
+        $client->request('GET', '/courses/');
+        $client->clickLink('Профиль');
+        $crawler = $client->clickLink('Transactions');
+        $this->assertContains('У вас нет транзакций', $client->getResponse()->getContent());
+    }
 }

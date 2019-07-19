@@ -76,7 +76,6 @@ class LessonControllerTest extends AbstractTest
         $newLessonForm["lesson[serialNumber]"] = "";
         $client->submit($newLessonForm);
         $this->assertContains("This value should not be blank.", $client->getResponse()->getContent());
-
     }
     public function testPage404()
     {
@@ -137,7 +136,7 @@ class LessonControllerTest extends AbstractTest
         $this->assertSame(200, $client->getResponse()->getStatusCode());
         $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
         $addButtonCheck = $crawlerCourse->filter('Добавить урок')->count();
-        $this->assertSame(0,$addButtonCheck);
+        $this->assertSame(0, $addButtonCheck);
     }
     public function testEditLessonNoAdmin()
     {
@@ -147,7 +146,7 @@ class LessonControllerTest extends AbstractTest
         $this->assertSame(200, $client->getResponse()->getStatusCode());
         $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
         $addButtonCheck = $crawlerCourse->filter('Редактировать')->count();
-        $this->assertSame(0,$addButtonCheck);
+        $this->assertSame(0, $addButtonCheck);
     }
     public function testDeleteLessonNoAdmin()
     {
@@ -157,6 +156,26 @@ class LessonControllerTest extends AbstractTest
         $this->assertSame(200, $client->getResponse()->getStatusCode());
         $countOfLessonsBefore = $crawlerCourse->filter('.btn-link')->count();
         $addButtonCheck = $crawlerCourse->filter('удалить')->count();
-        $this->assertSame(0,$addButtonCheck);
+        $this->assertSame(0, $addButtonCheck);
     }
+    public function testShowLessonNoPaid()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $crawler=$client->request('GET', '/courses/kurs-veb-razrabotki-dlya-novichkov');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $link = $crawler->filter('.btn-link')->eq(1);
+        $client->clickLink($link->text());
+        $this->assertContains('Курс не оплачен', $client->getResponse()->getContent());
+    }
+    public function testShowLessonPaid()
+    {
+        $client = $this->authClient('test@gmail.com', 'aaaaaa');
+        $crawler=$client->request('GET', '/courses/kurs-programmirovaniya-na-c');
+        $this->assertSame(200, $client->getResponse()->getStatusCode());
+        $link = $crawler->filter('.btn-link')->eq(1);
+        $crawler = $client->clickLink($link->text());
+        $addPaidCheck = $crawler->filter('Курс не оплачен')->count();
+        $this->assertSame(0, $addPaidCheck);
+    }
+
 }

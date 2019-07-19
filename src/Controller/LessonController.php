@@ -70,16 +70,24 @@ class LessonController extends AbstractController
      * @Route("/{id}", name="lesson_show", methods={"GET"})
      * @IsGranted("ROLE_USER")
      */
-    public function show(Lesson $lesson,  BillingClient $billingClient): Response
+    public function show(Lesson $lesson, BillingClient $billingClient): Response
     {
         $user = $this->getUser();
         if ($user) {
             $billingCourse = $billingClient->getDetailCourseInfo($lesson->getLessonCourse()->getSlug());
+            if ($billingCourse['type'] == 'free') {
+                return $this->render('lesson/show.html.twig', [
+                    'lesson' => $lesson,
+                    'course'=>$lesson->getLessonCourse(),
+                    'error_message'=>null
+                ]);
+            }
             if ($billingCourse['type'] == 'rent') {
                 $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $lesson->getLessonCourse()->getSlug(), 'skip_expired' => 1]);
             } else {
                 $getPayInformation = $billingClient->getTransactions($user->getToken(), ['course_code' => $lesson->getLessonCourse()->getSlug()]);
             }
+
             //print(count($getPayInformation));
 
             if (array_key_exists('message', $getPayInformation)) {
