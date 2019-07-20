@@ -20,6 +20,12 @@
             {{ message }}
         </div>
     {% endfor %}
+    {% for message in app.flashes('failed_delete') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+
     <br>
     <h1>Уроки</h1>
     <ol>

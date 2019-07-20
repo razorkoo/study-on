@@ -21,6 +21,9 @@ class BillingClientMock extends BillingClient
         ['code'=>'kurs-veb-razrabotki-dlya-novichkov3','type'=>'rent','price'=>'10'],
         ['code'=>'kurs-veb-razrabotki-dlya-novichkov','type'=>'rent','price'=>'8'],
         ['code'=>'eto-testovyy-urok','type'=>'full','price'=>'20']];
+    private $defaultCourse = "kurs-programmirovaniya-na-c";
+    private $defaultCourseRent = "kurs-veb-razrabotki-dlya-novichkov3";
+    private $defaultCourseRent2 = "kurs-veb-razrabotki-dlya-novichkov";
     public function setTokens($newTokenAdmin = null, $newTokenUser = null)
     {
 
@@ -78,9 +81,9 @@ class BillingClientMock extends BillingClient
                     }
                 }
                 if (array_key_exists('course_code', $filters)) {
-                    if ($filters['course_code'] == 'kurs-programmirovaniya-na-c') {
+                    if ($filters['course_code'] == $this->defaultCourse) {
                         return [['id' => 2, 'amount' => 10, 'type' => 'payment',
-                            'course_code' => 'kurs-programmirovaniya-na-c',
+                            'course_code' => $this->defaultCourse,
                             'expired_at' => '2019-09-10 09:10:56']];
                     } else {
                         return ['message'=>'У вас нет транзакций'];
@@ -90,7 +93,7 @@ class BillingClientMock extends BillingClient
                 if ($token == $this->adminToken) {
                     return [['id' => 1, 'amount' => 100, 'type' => 'deposit'],
                         ['id' => 2, 'amount' => 10, 'type' => 'payment',
-                            'course_code' => 'kurs-programmirovaniya-na-c',
+                            'course_code' => $this->defaultCourse,
                             'expired_at' => '2019-09-10 09:10:56'],
                     ];
                 } else {
@@ -140,14 +143,68 @@ class BillingClientMock extends BillingClient
     }
     public function payCourse($course, $token)
     {
-        if ($course == 'kurs-programmirovaniya-na-c') {
+        if ($course == $this->defaultCourse) {
             return ['success'=>true,'type'=>'full'];
         }
-        if ($course == 'kurs-veb-razrabotki-dlya-novichkov3') {
+        if ($course == $this->defaultCourseRent) {
             return ['success'=>true, 'type'=>'rent', 'expired_at'=>'2019-09-10 09:10:56'];
         }
-        if ($course == 'kurs-veb-razrabotki-dlya-novichkov') {
+        if ($course == $this->defaultCourseRent2) {
             return ['success'=>true, 'type'=>'rent', 'expired_at'=>'2019-09-10 09:10:56'];
         }
+    }
+    public function addCourse($slug, $price, $type, $token)
+    {
+            foreach ($this->allCourses as $course) {
+                if ($course['code'] == $slug) {
+                    return ['errors' => 'The same course is already exist'];
+                }
+            }
+            array_push($this->allCourses,['code'=> $slug, 'type'=> $type, 'price' => $price]);
+            return ['success' => true];
+    }
+    public function editCourse($code, $slug, $price, $type, $token)
+    {
+        foreach ($this->allCourses as $course) {
+            if ($course['code'] == $code) {
+                if ($course['code'] == $slug) {
+                    $newCourse = ['code' => $slug, 'type'=> $type, 'price'=>$price];
+                    $index = array_search($course,$this->allCourses);
+                    unset($this->allCourses[$index]);
+                    array_values($this->allCourses);
+                    array_push($this->allCourses,$newCourse);
+                    return ['success' => true];
+                } else {
+                    foreach ($this->allCourses as $courseFinding) {
+                        if ($courseFinding['code'] == $slug) {
+                            return ['errors' => ['The same course is already exist']];
+                        }
+                    }
+                    $newCourse = ['code' => $slug, 'type'=> $type, 'price'=>$price];
+                    $index = array_search($course,$this->allCourses);
+                    unset($this->allCourses[$index]);
+                    array_values($this->allCourses);
+                    array_push($this->allCourses,$newCourse);
+                    return ['success' => true];
+                }
+            }
+        }
+        return ['errors' => ["Course doesn't exist"]];
+    }
+    public function deleteCourse($code, $token)
+    {
+        foreach ($this->allCourses as $course) {
+            if ($course['code'] == $code) {
+                if ($code != $this->defaultCourse) {
+                    $index = array_search($course,$this->allCourses);
+                    unset($this->allCourses[$index]);
+                    array_values($this->allCourses);
+                    return ['success' => true];
+                } else {
+                    return ['errors' => 'This course exists in any transactions'];
+                }
+            }
+        }
+        return ['errors' => "Course doesn\'t exist"];
     }
 }

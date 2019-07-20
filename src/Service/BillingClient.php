@@ -53,6 +53,18 @@ class BillingClient
     {
         return $this->curlExec("GET", "/api/v1/courses/$course/pay", "", $token);
     }
+    public function addCourse($slug, $price, $type, $token)
+    {
+        return $this->curlExec("POST", "/api/v1/courses/add", json_encode(['code' => $slug, 'type'=>$type, 'price'=>$price]), $token);
+    }
+    public function editCourse($code, $slug, $price, $type, $token)
+    {
+        return $this->curlExec("POST", "/api/v1/courses/$code", json_encode(['code' => $slug, 'type'=>$type, 'price'=>$price]), $token);
+    }
+    public function deleteCourse($code, $token)
+    {
+        return $this->curlExec("DELETE", "/api/v1/courses/$code", "", $token);
+    }
 
     public function checkResults($results)
     {
@@ -107,6 +119,22 @@ class BillingClient
         if ($method == "GET") {
             curl_setopt($curlExecutor, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curlExecutor, CURLOPT_HTTPGET, 1);
+            $returnedData = curl_exec($curlExecutor);
+            curl_close($curlExecutor);
+            if ($this->checkResults($returnedData)) {
+                throw new \HttpException(503, curl_error($curlExecutor));
+            } else {
+                $parsedData = $this->checkJson($returnedData);
+                if ($parsedData == "Invalid JSON") {
+                    throw new HttpException(503, "Invalid JSON");
+                } else {
+                    return $parsedData;
+                }
+            }
+        }
+        if ($method == "DELETE") {
+            curl_setopt($curlExecutor, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curlExecutor, CURLOPT_CUSTOMREQUEST, $method);
             $returnedData = curl_exec($curlExecutor);
             curl_close($curlExecutor);
             if ($this->checkResults($returnedData)) {

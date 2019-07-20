@@ -7,6 +7,7 @@ use App\Form\Course1Type;
 use App\Form\CourseType;
 use App\Entity\CourseModel;
 use App\Repository\CourseRepository;
+use App\Security\BillingUser;
 use App\Service\BillingClient;
 use Doctrine\DBAL\Types\TextType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,9 @@ use Cocur\Slugify\Slugify;
  */
 class CourseController extends AbstractController
 {
+    const TYPE_RENT ='rent';
+    const TYPE_FREE = 'free';
+    const TYPE_FULL = 'full';
     /**
      * @Route("/", name="course_index", methods={"GET"})
      */
@@ -63,30 +67,43 @@ class CourseController extends AbstractController
      * @Route("/new", name="course_new", methods={"GET","POST"})
      * @IsGranted("ROLE_SUPER_ADMIN")
      */
-    public function new(Request $request): Response
+    public function new(Request $request, BillingClient $billingClient): Response
     {
 
         //$form = $this->createForm(Course1Type::class, $course);
         //$form->handleRequest($request);
-
-        $course = new Course();
-        $form = $this->createForm(CourseType::class, $course);
+        $user = $this->getUser();
+        $form = $this->createForm(CourseType::class);
         $form->handleRequest($request);
 
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $course = new Course();
+            $formData = $form->getData();
+            $course->setTitle($formData['title']);
             $slugify = new Slugify();
             $slug = $slugify->slugify($course->getTitle());
-            $course->setSlug($slug);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($course);
-            $entityManager->flush();
+            if (isset($formData['price'])) {
+                $results = $billingClient->addCourse($slug, $formData['price'], $formData['type'], $user->getToken());
+            } else {
+                $results = $billingClient->addCourse($slug, 0.0, $formData['type'], $user->getToken());
+            }
+            if (array_key_exists('success', $results)) {
+                $course->setSlug($slug);
+                $course->setDescription($formData['description']);
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($course);
+                $entityManager->flush();
+            } else {
+                $this->addFlash('failed_add', $results['errors']);
+                return $this->redirectToRoute('course_new');
+            }
+
 
             return $this->redirectToRoute('course_index');
         }
 
         return $this->render('course/new.html.twig', [
-            'course' => $course,
             'form' => $form->createView(),
         ]);
     }
@@ -98,6 +115,16 @@ class CourseController extends AbstractController
     {
 
         $lessons = $course->getLessons();
+        $mergedCourse = $this->getMergedCourse($slug, $course, $billingClient);
+
+        return $this->render('course/show.html.twig', [
+            'course' => $course,
+            'lessons'=>$lessons,
+            'mergedCourse' => $mergedCourse
+        ]);
+    }
+    public function getMergedCourse($slug, Course $course, BillingClient $billingClient)
+    {
         $billingCourse = $billingClient->getDetailCourseInfo($course->getSlug());
         $user = $this->getUser();
 
@@ -145,39 +172,68 @@ class CourseController extends AbstractController
             $mergedCourse->type = "Бесплатный";
             $mergedCourse->price = 0.0;
         }
-
-        return $this->render('course/show.html.twig', [
-            'course' => $course,
-            'lessons'=>$lessons,
-            'mergedCourse' => $mergedCourse
-        ]);
+        return $mergedCourse;
     }
 
     /**
      * @Route("/{slug}/edit", name="course_edit", methods={"GET","POST"})
      * @IsGranted("ROLE_SUPER_ADMIN")
      */
-    public function edit(Request $request, Course $course): Response
+    public function edit($slug, Request $request, Course $course, BillingClient $billingClient): Response
     {
-        $form = $this->createForm(CourseType::class, $course);
+        $form = $this->createForm(CourseType::class);
         $form->handleRequest($request);
+        $billingCourse = $billingClient->getDetailCourseInfo($course->getSlug());
+        if (array_key_exists('errors', $billingCourse)) {
+            $this->addFlash('failed_edit', $billingCourse['errors']);
+            return $this->render('course/edit.html.twig', [
+                'course' => $course,
+                'form' => $form->createView(),
+            ]);
+        }
+        $mergedCourse = new CourseModel();
+        $mergedCourse->course = $course;
+        if (isset($billingCourse['price'])) {
+            $mergedCourse->price = $billingCourse['price'];
+        } else {
+            $mergedCourse->price = 0.0;
+        }
 
+        $mergedCourse->type = $billingCourse['type'];
         if ($form->isSubmitted() && $form->isValid()) {
+            $user = $this->getUser();
+            $formData = $form->getData();
             $this->getDoctrine()->getManager()->flush();
             $slugify = new Slugify();
-            $slug = $slugify->slugify($course->getTitle());
-            $course->setSlug($slug);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($course);
-            $entityManager->flush();
-            return $this->redirectToRoute('course_index', [
-                'id' => $course->getId(),
-            ]);
+            $slug = $slugify->slugify($formData['title']);
+            $editResults = $billingClient->editCourse($course->getSlug(), $slug, $formData['price'], $formData['type'], $user->getToken());
+            if (array_key_exists('success', $editResults)) {
+                $course->setSlug($slug);
+                $course->setTitle($formData['title']);
+                $course->setDescription($formData['description']);
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($course);
+                $entityManager->flush();
+                $mergedCourse->course = $course;
+                $mergedCourse->type = $formData['type'];
+                $mergedCourse->price = $formData['price'];
+                return $this->redirectToRoute('course_index');
+            } else {
+                foreach ($editResults['errors'] as $error) {
+                    $this->addFlash('failed_edit', $error);
+                }
+                return $this->render('course/edit.html.twig', [
+                    'course' => $course,
+                    'form' => $form->createView(),
+                    'merged_course' => $mergedCourse
+                ]);
+            }
         }
 
         return $this->render('course/edit.html.twig', [
             'course' => $course,
             'form' => $form->createView(),
+            'merged_course' => $mergedCourse
         ]);
     }
 
@@ -185,12 +241,24 @@ class CourseController extends AbstractController
      * @Route("/{slug}", name="course_delete", methods={"DELETE"})
      * @IsGranted("ROLE_SUPER_ADMIN")
      */
-    public function delete(Request $request, Course $course): Response
+    public function delete(Request $request, Course $course, BillingClient $billingClient): Response
     {
         if ($this->isCsrfTokenValid('delete'.$course->getId(), $request->request->get('_token'))) {
+            $user = $this->getUser();
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($course);
-            $entityManager->flush();
+            $reults = $billingClient->deleteCourse($course->getSlug(), $user->getToken());
+            if (array_key_exists('success', $reults)) {
+                $entityManager->remove($course);
+                $entityManager->flush();
+            } else {
+                $this->addFlash('failed_delete', $reults['errors']);
+                $mergedCourse = $this->getMergedCourse($course->getSlug(), $course, $billingClient);
+                return $this->render('course/show.html.twig', [
+                    'course' => $course,
+                    'lessons'=>$course->getLessons(),
+                    'mergedCourse' => $mergedCourse
+                ]);
+            }
         }
 
         return $this->redirectToRoute('course_index');

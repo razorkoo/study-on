@@ -3,6 +3,11 @@
 {% block title %}New Course{% endblock %}
 
 {% block body %}
+    {% for message in app.flashes('failed_add') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
     <h1>Добавить новый урок</h1>
 
     {{ include('course/_form.html.twig') }}

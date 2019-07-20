@@ -8,16 +8,19 @@
         {{ error_message }}
     </div>
     {% endif %}
-    {% if not error_message  %}
-    <h1>{{ lesson.title }}</h1>
+    {% if not error_message %}
+        {% if not is_granted('ROLE_SUPER_ADMIN') %}
+            <h1>{{ lesson.title }}</h1>
 
-    <p>Курс <a href="{{ path('course_show', {slug: lesson.lessonCourse.slug}) }}">{{course.title}}</a></p>
+            <p>Курс <a href="{{ path('course_show', {slug: lesson.lessonCourse.slug}) }}">{{course.title}}</a></p>
 
-    <div class="card mt-3">
-        <div class="card-body">
-            {{ lesson.content }}
-        </div>
-    </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    {{ lesson.content }}
+                </div>
+            </div>
+        {% endif %}
+
     {% endif %}
     {% if is_granted('ROLE_SUPER_ADMIN') %}
         <h1>{{ lesson.title }}</h1>

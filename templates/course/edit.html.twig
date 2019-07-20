@@ -3,6 +3,11 @@
 {% block title %}Edit Course{% endblock %}
 
 {% block body %}
+    {% for message in app.flashes('failed_edit') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
     <h1>Редактирование курса</h1>
 
     {{ include('course/_form.html.twig', {'button_label': 'Сохранить'}) }}

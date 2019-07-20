@@ -79,7 +79,7 @@ class CourseControllerTest extends AbstractTest
     {
         $client = static::createClient();
         $crawler = $client->request('GET', '/courses/');
-        $this->assertEquals(3, $crawler->filter('.card')->count());
+        $this->assertEquals(2, $crawler->filter('.card')->count());
     }
     public function testPage404()
     {
@@ -98,15 +98,20 @@ class CourseControllerTest extends AbstractTest
     public function testCreateCoursePage()
     {
         $client = $this->authClient('testadmin@gmail.com', 'aaaaaa');
-        $client->request('GET', '/courses/');
+        $crawler = $client->request('GET', '/courses/');
+        $before = $crawler->filter('.card')->count();
         $crawler = $client->clickLink('Добавить новый курс');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
         $newCourseForm = $crawler->selectButton('Сохранить')->form();
-        $newCourseForm["course[title]"] = "Это тестовый урок";
+        $newCourseForm["course[title]"] = "Это тестовый урок2";
         $newCourseForm["course[description]"] = "Это описание тестового урока";
+        $newCourseForm["course[price]"] = 0.0;
+        $newCourseForm["course[type]"] = 'free';
         $client->submit($newCourseForm);
+        $client->followRedirect();
         $crawler = $client->request('GET', '/courses/');
-        $this->assertEquals(4, $crawler->filter('.card')->count());
+        $after = $crawler->filter('.card')->count();
+        $this->assertGreaterThan($before, $after);
     }
 
     public function testEditCourse()
@@ -118,12 +123,15 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->clickLink('Редактировать курс');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
         $courseForm = $crawler->selectButton('Сохранить')->form();
-        $courseForm["course[title]"] = "Это тестовый урок";
+        $courseForm["course[title]"] = "Это тестовый урок измененный";
         $courseForm["course[description]"] = "это изменение описания урока";
+        $courseForm["course[type]"] = "rent";
+        $courseForm["course[description]"] = "12";
         $client->submit($courseForm);
+        $client->followRedirect();
         $crawler = $client->request('GET', '/courses/');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
-        $this->assertTrue($crawler->filter('html:contains("это изменение описания урока")')->count() > 0);
+        $this->assertTrue($crawler->filter('html:contains("Это тестовый урок измененный")')->count() > 0);
     }
     public function deleteCourse()
     {
