@@ -31,8 +31,8 @@ class CourseControllerTest extends AbstractTest
         $client = static::createClient();
         $client->disableReboot();
         $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
-        print($client->getResponse());
         $crawler = $client->request('GET', '/courses/');
+        print($client->getResponse());
         $this->assertSame(200, $client->getResponse()->getStatusCode());
     }
     public function testNewPage()
