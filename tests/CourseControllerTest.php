@@ -29,6 +29,8 @@ class CourseControllerTest extends AbstractTest
     public function testIndexPage()
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
         $crawler = $client->request('GET', '/courses/');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
     }
@@ -43,6 +45,8 @@ class CourseControllerTest extends AbstractTest
     public function testShowPage()
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -50,6 +54,8 @@ class CourseControllerTest extends AbstractTest
     public function testShowCoursesPage()
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
         $crawler = $client->request('GET', '/courses/');
         $client->clickLink('Перейти к курсу');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -78,13 +84,17 @@ class CourseControllerTest extends AbstractTest
     public function testCountCourses()
     {
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
         $crawler = $client->request('GET', '/courses/');
-        $this->assertEquals(2, $crawler->filter('.card')->count());
+        $this->assertEquals(3, $crawler->filter('.card')->count());
     }
     public function testPage404()
     {
-        $courseId = 65128;
+        $courseId = "noname-kurs";
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
         $crawler = $client->request('GET', "/courses/$courseId");
         $this->assertSame(404, $client->getResponse()->getStatusCode());
     }
@@ -92,6 +102,8 @@ class CourseControllerTest extends AbstractTest
     {
         $courseId = 404;
         $client = static::createClient();
+        $client->disableReboot();
+        $client->getContainer()->set('App\Service\BillingClient', new BillingClientMock($_ENV['BILLING_HOST']));
         $crawler = $client->request('GET', "/courses/$courseId/edit");
         $this->assertSame(404, $client->getResponse()->getStatusCode());
     }

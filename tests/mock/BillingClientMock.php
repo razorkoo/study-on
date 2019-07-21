@@ -127,17 +127,23 @@ class BillingClientMock extends BillingClient
     {
         $tokenHeader = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ.";
         $tokenSign = ".jk9pDZXhwKLmSwrjvPQM9ru-J3bpX2vow0KQEH0uAsgFCnbIvAsDgC_RiDgQXSgJ4K8iNZsu1IIF9CGGoOX80V6VMdKbD9Zx54puWLcu9eBQgARAeXgisEpoHKvjxm1FQIiUy7hKkCT-VN8LlsHLrDgdNvIha9Sc5MmyfTrp1I_3N2FD6s5mAaEgvC2uH1ZnOon0UkNm6QhWGpfwhQMmNvt6oV5MFf6uC1fkSPeUV-WyCw_myfr-waUr4jKnGf-KbQSAQsppUDUze676A8TyAUhflhk2nXS2P0KLNrvPdlzD2W905MAXxtrdmIoyxl7jwH5CCy59HbLiK30x5jLnsvgeXG0eifGVIUbfY-rTWLZ9fcoNy8YxsWT5EBmf1JWP8l1teYnC0IOiFJYzNhIdQUpGZ6OLCMl7mgvUOp_y6qJ5Qv4qWpFRM2X-9brm7ePA9fPhTBcjMDuJ81_pNuFZM07r3pBjae81vZRHWMpn41glUAOSzy4qi0yD13Rq55vkG-CepmgfIcQRmsIVRPd3P6v06I8luULqCUy6LGcz9LWKu7aeyqTbK0XFK7yQEhVEvst5CKyffERogL5TpHPLXRAfaK2BjgSUn_jgYeYtBVgF2M4qyMloK29R5odTD8cgmuvrPM_aAfrwhmRzS9ekybTjKxZx_WH2RMw0X3_cuiI";
-        $payload = new \stdClass();
-        $payload->iat = (new \DateTime())->getTimestamp();
-        $payload->exp = ((new \DateTime())->modify('+3 week'))->getTimestamp();
-        $payload->username = $username;
-        if ($username == "testadmin@gmail.com") {
-            $payload->roles = ['ROLE_USER', 'ROLE_SUPER_ADMIN'];
+        $base64Payload = base64_encode(json_encode(new class($username) {
+            public $iat;
+            public $exp;
+            public $username;
+            public $roles;
+            public function __construct($username) {
+                $this->iat = (new \DateTime())->getTimestamp();
+                $this->exp = ((new \DateTime())->modify('+3 week'))->getTimestamp();
+                $this->username = $username;
+                if ($username == "testadmin@gmail.com") {
+                    $this->roles = ['ROLE_USER', 'ROLE_SUPER_ADMIN'];
+                }
+                if ($username == "test@gmail.com") {
+                    $this->roles = ['ROLE_USER'];
+                }
         }
-        if ($username == "test@gmail.com") {
-            $payload->roles = ['ROLE_USER'];
-        }
-        $base64Payload = base64_encode(json_encode($payload));
+        }));
         $finalToken = $tokenHeader . $base64Payload . $tokenSign;
         return $finalToken;
     }
