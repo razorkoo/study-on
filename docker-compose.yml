@@ -34,7 +34,6 @@ services:
   node:
     image: node:8-alpine
     environment:
-      - HOME=${PWD}
       - YARN_CACHE_FOLDER=/yarn
     working_dir: /app
     user: ${UID:-1000}:${GID:-1000}
