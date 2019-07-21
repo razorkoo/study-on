@@ -32,7 +32,7 @@ services:
     links:
       - postgres
   node:
-    image: node:alpine
+    image: node8:alpine
     environment:
       - HOME=${PWD}
       - YARN_CACHE_FOLDER=/yarn
